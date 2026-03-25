@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const PROTECTED_ROUTES = ["/employee/dashboard"];
+const PROTECTED_ROUTES = [
+  "/dashboard",
+  "/customers",
+  "/events",
+  "/bookings",
+  "/employees",
+];
 
 async function isAuthenticated(token: string): Promise<boolean> {
   try {
@@ -22,21 +28,21 @@ export async function proxy(request: NextRequest) {
   const token = request.cookies.get("jwt")?.value;
 
   const isProtected = PROTECTED_ROUTES.includes(pathname);
-  const isLoginPage = pathname.startsWith("/employee/login");
+  const isLoginPage = pathname.startsWith("/login");
 
   const authenticated = token ? await isAuthenticated(token) : false;
 
   if (isProtected && !authenticated) {
-    return NextResponse.redirect(new URL("/employee/login", request.url));
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   if (isLoginPage && authenticated) {
-    return NextResponse.redirect(new URL("/employee/dashboard", request.url));
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/employee/dashboard/:path*", "/employee/login"],
+  matcher: ["/dashboard", "/customers", "/events", "/bookings", "/employees", "/login"],
 };

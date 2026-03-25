@@ -28,7 +28,7 @@ export default function LoginPage() {
       setLoading(true);
       setError("");
       await api.post("/auth/login", { email, password });
-      router.push("/employee/dashboard");
+      router.push("/dashboard");
     } catch (err) {
       console.log(err);
       if (axios.isAxiosError(err)) {
