@@ -113,11 +113,13 @@ export default function EditEventDialog({
 
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="edit-description">Description</Label>
-              <Input
+              <textarea
                 id="edit-description"
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 required
+                rows={4}
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
               />
             </div>
 
