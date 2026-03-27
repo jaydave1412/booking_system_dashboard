@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/provider/auth.provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,33 +13,38 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import api from "@/lib/api";
 import axios from "axios";
 import Spinner from "@/components/spinner";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { user, loading, login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(e: React.SubmitEvent) {
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace("/dashboard");
+    }
+  }, [loading, user, router]);
+
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     try {
       e.preventDefault();
-      setLoading(true);
+      setSubmitting(true);
       setError("");
-      await api.post("/auth/login", { email, password });
+      await login(email, password);
       router.push("/dashboard");
     } catch (err) {
-      console.log(err);
       if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message);
+        setError(err.response?.data?.message ?? "Something went wrong");
       } else {
         setError("Something went wrong");
       }
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   }
 
@@ -50,9 +56,7 @@ export default function LoginPage() {
           <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
-            <p className="text-sm text-destructive mb-2">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive mb-2">{error}</p>}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="email">Email</Label>
@@ -76,8 +80,8 @@ export default function LoginPage() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full mt-2" disabled={loading}>
-              {loading ? (
+            <Button type="submit" className="w-full mt-2" disabled={submitting}>
+              {submitting ? (
                 <>
                   <Spinner />
                   Signing in...
