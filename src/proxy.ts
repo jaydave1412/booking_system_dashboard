@@ -14,6 +14,7 @@ async function isAuthenticated(token: string): Promise<boolean> {
   try {
     const res = await fetch(`${API_URL}/auth/validate`, {
       headers: { Cookie: `jwt=${token}` },
+      credentials: "include",
     });
     if (!res.ok) return false;
     const data = await res.json();
@@ -44,5 +45,12 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard", "/customers", "/events", "/bookings", "/employees", "/login"],
+  matcher: [
+    "/dashboard",
+    "/customers",
+    "/events",
+    "/bookings",
+    "/employees",
+    "/login",
+  ],
 };
