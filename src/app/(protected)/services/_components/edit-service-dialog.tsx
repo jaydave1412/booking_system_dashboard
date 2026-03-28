@@ -14,65 +14,57 @@ import { Label } from "@/components/ui/label";
 import Spinner from "@/components/spinner";
 import api from "@/lib/api";
 import axios from "axios";
-import { UpdateEventPayload } from "@/types/event";
-import { formatInTimeZone } from "date-fns-tz";
-
-const IST = "Asia/Kolkata";
-
-function toDatetimeLocal(iso: string) {
-  return formatInTimeZone(new Date(iso), IST, "yyyy-MM-dd'T'HH:mm");
-}
+import { UpdateServicePayload } from "@/types/service";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  eventId: string | null;
+  serviceId: string | null;
   onSuccess: () => void;
 }
 
-export default function EditEventDialog({
+export default function EditServiceDialog({
   open,
   onOpenChange,
-  eventId,
+  serviceId,
   onSuccess,
 }: Props) {
-  const [form, setForm] = useState<UpdateEventPayload>({
+  const [form, setForm] = useState<UpdateServicePayload>({
     title: "",
     description: "",
-    date: "",
+    cost: 0,
   });
   const [fetchLoading, setFetchLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!open || !eventId) return;
+    if (!open || !serviceId) return;
     setFetchLoading(true);
     setError("");
-    setForm({ title: "", description: "", date: "" });
+    setForm({ title: "", description: "", cost: 0 });
     api
-      .get(`/events/${eventId}`)
+      .get(`/services/${serviceId}`)
       .then(({ data }) =>
         setForm({
           title: data.title,
           description: data.description,
-          date: toDatetimeLocal(data.date),
-        })
+          cost: data.cost,
+        }),
       )
-      .catch(() => setError("Failed to load event data."))
+      .catch(() => setError("Failed to load service data."))
       .finally(() => setFetchLoading(false));
-  }, [open, eventId]);
+  }, [open, serviceId]);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     setSubmitLoading(true);
     setError("");
     try {
-      const payload: UpdateEventPayload = {
+      const payload: UpdateServicePayload = {
         ...form,
-        date: new Date(form.date).toISOString(),
       };
-      await api.patch(`/events/${eventId}`, payload);
+      await api.patch(`/services/${serviceId}`, payload);
       onSuccess();
       onOpenChange(false);
     } catch (err) {
@@ -90,7 +82,7 @@ export default function EditEventDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Event</DialogTitle>
+          <DialogTitle>Edit Service</DialogTitle>
         </DialogHeader>
 
         {fetchLoading ? (
@@ -106,7 +98,9 @@ export default function EditEventDialog({
               <Input
                 id="edit-title"
                 value={form.title}
-                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, title: e.target.value }))
+                }
                 required
               />
             </div>
@@ -116,7 +110,9 @@ export default function EditEventDialog({
               <textarea
                 id="edit-description"
                 value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, description: e.target.value }))
+                }
                 required
                 rows={4}
                 className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
@@ -124,13 +120,16 @@ export default function EditEventDialog({
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="edit-date">Date & Time</Label>
+              <Label htmlFor="edit-cost">Cost</Label>
+
               <Input
-                id="edit-date"
-                type="datetime-local"
-                value={form.date}
-                onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
                 required
+                id="edit-cost"
+                type="number"
+                value={form.cost}
+                onChange={(e) => {
+                  setForm((f) => ({ ...f, cost: parseFloat(e.target.value) }));
+                }}
               />
             </div>
 

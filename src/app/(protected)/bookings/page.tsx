@@ -11,7 +11,7 @@ import { Booking, BookingStatus } from "@/types/booking";
 const IST = "Asia/Kolkata";
 
 function formatDate(iso: string) {
-  return formatInTimeZone(new Date(iso), IST, "dd MMM yyyy, hh:mm a");
+  return formatInTimeZone(new Date(iso), IST, "dd MMM yyyy");
 }
 
 const STATUS_STYLES: Record<BookingStatus, string> = {
@@ -24,7 +24,11 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [alert, setAlert] = useState<{ id: string; message: string; success: boolean } | null>(null);
+  const [alert, setAlert] = useState<{
+    id: string;
+    message: string;
+    success: boolean;
+  } | null>(null);
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
@@ -40,17 +44,22 @@ export default function BookingsPage() {
     fetchBookings();
   }, [fetchBookings]);
 
-  async function handleStatusChange(booking: Booking, newStatus: BookingStatus) {
+  async function handleStatusChange(
+    booking: Booking,
+    newStatus: BookingStatus,
+  ) {
     setUpdatingId(booking.id);
     setAlert(null);
     try {
       await api.patch(`/bookings/${booking.id}`, { status: newStatus });
       setBookings((prev) =>
-        prev.map((b) => (b.id === booking.id ? { ...b, status: newStatus } : b))
+        prev.map((b) =>
+          b.id === booking.id ? { ...b, status: newStatus } : b,
+        ),
       );
       setAlert({
         id: booking.id,
-        message: `Booking for "${booking.event.title}" has been ${newStatus.toLowerCase()}.`,
+        message: `Booking for "${booking.service.title}" has been ${newStatus.toLowerCase()}.`,
         success: true,
       });
     } catch {
@@ -95,23 +104,45 @@ export default function BookingsPage() {
               <table className="w-full text-sm">
                 <thead className="border-b bg-muted/50">
                   <tr>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Customer</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Email</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Event</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Event Date</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Booked At</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Customer
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Email
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Service
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Cost
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Booked For
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {bookings.map((booking) => (
                     <tr key={booking.id} className="border-b last:border-0">
-                      <td className="px-4 py-3 font-medium">{booking.customer.name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{booking.customer.email}</td>
-                      <td className="px-4 py-3">{booking.event.title}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{formatDate(booking.event.date)}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{formatDate(booking.createdAt)}</td>
+                      <td className="px-4 py-3 font-medium">
+                        {booking.customer.name}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {booking.customer.email}
+                      </td>
+                      <td className="px-4 py-3">{booking.service.title}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {booking.service.cost}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {formatDate(booking.date)}
+                      </td>
                       <td className="px-4 py-3">
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[booking.status]}`}
@@ -121,39 +152,67 @@ export default function BookingsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex justify-end">
-                          {booking.status === "CANCELLED" ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={updatingId === booking.id}
-                              onClick={() => handleStatusChange(booking, "CONFIRMED")}
-                            >
-                              {updatingId === booking.id ? (
-                                <>
-                                  <Spinner />
-                                  Confirming...
-                                </>
-                              ) : (
-                                "Confirm"
-                              )}
-                            </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              disabled={updatingId === booking.id}
-                              onClick={() => handleStatusChange(booking, "CANCELLED")}
-                            >
-                              {updatingId === booking.id ? (
-                                <>
-                                  <Spinner />
-                                  Cancelling...
-                                </>
-                              ) : (
-                                "Cancel"
-                              )}
-                            </Button>
-                          )}
+                          {
+                            {
+                              PENDING: (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={updatingId === booking.id}
+                                  onClick={() =>
+                                    handleStatusChange(booking, "CONFIRMED")
+                                  }
+                                >
+                                  {updatingId === booking.id ? (
+                                    <>
+                                      <Spinner />
+                                      Confirming...
+                                    </>
+                                  ) : (
+                                    "Confirm"
+                                  )}
+                                </Button>
+                              ),
+                              CONFIRMED: (
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  disabled={updatingId === booking.id}
+                                  onClick={() =>
+                                    handleStatusChange(booking, "CANCELLED")
+                                  }
+                                >
+                                  {updatingId === booking.id ? (
+                                    <>
+                                      <Spinner />
+                                      Cancelling...
+                                    </>
+                                  ) : (
+                                    "Cancel"
+                                  )}
+                                </Button>
+                              ),
+                              CANCELLED: (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={updatingId === booking.id}
+                                  onClick={() =>
+                                    handleStatusChange(booking, "CONFIRMED")
+                                  }
+                                >
+                                  {updatingId === booking.id ? (
+                                    <>
+                                      <Spinner />
+                                      Confirming...
+                                    </>
+                                  ) : (
+                                    "Confirm"
+                                  )}
+                                </Button>
+                              ),
+                            }[booking.status.toUpperCase() as BookingStatus]
+                          }
                         </div>
                       </td>
                     </tr>

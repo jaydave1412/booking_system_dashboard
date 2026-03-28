@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Customers", href: "/customers" },
-  { label: "Events", href: "/events" },
+  { label: "Services", href: "/services" },
   { label: "Bookings", href: "/bookings" },
   { label: "Employees", href: "/employees" },
 ];
@@ -31,7 +31,7 @@ export default function Sidebar() {
               "rounded-md px-3 py-2 text-sm font-medium transition-colors",
               pathname === href
                 ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             {label}

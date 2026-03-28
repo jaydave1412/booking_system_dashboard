@@ -9,8 +9,8 @@ import Spinner from "@/components/spinner";
 import api from "@/lib/api";
 import axios from "axios";
 import { formatInTimeZone } from "date-fns-tz";
-import { Event, CreateEventPayload } from "@/types/event";
-import EditEventDialog from "./_components/edit-event-dialog";
+import { Service, CreateServicePayload } from "@/types/service";
+import EditServiceDialog from "./_components/edit-service-dialog";
 
 const IST = "Asia/Kolkata";
 
@@ -18,14 +18,14 @@ function formatDate(iso: string) {
   return formatInTimeZone(new Date(iso), IST, "dd MMM yyyy, hh:mm a");
 }
 
-export default function EventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
+export default function ServicesPage() {
+  const [services, setServices] = useState<Service[]>([]);
   const [tableLoading, setTableLoading] = useState(true);
 
-  const [form, setForm] = useState<CreateEventPayload>({
+  const [form, setForm] = useState<CreateServicePayload>({
     title: "",
     description: "",
-    date: "",
+    cost: 0,
   });
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState("");
@@ -35,32 +35,31 @@ export default function EventsPage() {
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const fetchEvents = useCallback(async () => {
+  const fetchServices = useCallback(async () => {
     setTableLoading(true);
     try {
-      const { data } = await api.get<Event[]>("/events");
-      setEvents(data);
+      const { data } = await api.get<Service[]>("/services");
+      setServices(data);
     } finally {
       setTableLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    fetchServices();
+  }, [fetchServices]);
 
-  async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
+  async function handleCreate(e: React.SubmitEvent) {
     e.preventDefault();
     setCreateLoading(true);
     setCreateError("");
     try {
-      const payload: CreateEventPayload = {
+      const payload: CreateServicePayload = {
         ...form,
-        date: new Date(form.date).toISOString(),
       };
-      await api.post<Event>("/events", payload);
-      setForm({ title: "", description: "", date: "" });
-      await fetchEvents();
+      await api.post<Service>("/services", payload);
+      setForm({ title: "", description: "", cost: 0 });
+      await fetchServices();
     } catch (err) {
       if (axios.isAxiosError(err)) {
         setCreateError(err.response?.data?.message ?? "Something went wrong");
@@ -78,11 +77,12 @@ export default function EventsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm("Are you sure you want to delete this event?")) return;
+    if (!window.confirm("Are you sure you want to delete this service?"))
+      return;
     setDeletingId(id);
     try {
-      await api.delete(`/events/${id}`);
-      await fetchEvents();
+      await api.delete(`/services/${id}`);
+      await fetchServices();
     } finally {
       setDeletingId(null);
     }
@@ -90,12 +90,12 @@ export default function EventsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Events</h1>
+      <h1 className="text-2xl font-semibold">Services</h1>
 
-      {/* Create Event */}
+      {/* Create Service */}
       <Card className="max-w-md">
         <CardHeader>
-          <CardTitle>Create Event</CardTitle>
+          <CardTitle>Create Service</CardTitle>
         </CardHeader>
         <CardContent>
           {createError && (
@@ -107,7 +107,9 @@ export default function EventsPage() {
               <Input
                 id="title"
                 value={form.title}
-                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, title: e.target.value }))
+                }
                 required
               />
             </div>
@@ -116,78 +118,110 @@ export default function EventsPage() {
               <textarea
                 id="description"
                 value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, description: e.target.value }))
+                }
                 required
                 rows={4}
                 className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="date">Date & Time</Label>
+              <Label htmlFor="cost">Cost</Label>
               <Input
-                id="date"
-                type="datetime-local"
-                value={form.date}
-                onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                id="cost"
+                type="number"
+                value={form.cost}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, cost: parseFloat(e.target.value) }))
+                }
                 required
               />
             </div>
-            <Button type="submit" disabled={createLoading} className="self-start">
+            <Button
+              type="submit"
+              disabled={createLoading}
+              className="self-start"
+            >
               {createLoading ? (
                 <>
                   <Spinner />
                   Creating...
                 </>
               ) : (
-                "Create Event"
+                "Create Service"
               )}
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      {/* Events Table */}
+      {/* Services Table */}
       <div className="rounded-lg border">
         {tableLoading ? (
           <div className="flex items-center justify-center py-16">
             <Spinner className="size-6" />
           </div>
-        ) : events.length === 0 ? (
+        ) : services.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-16">
-            No events found.
+            No services found.
           </p>
         ) : (
           <table className="w-full text-sm">
             <thead className="border-b bg-muted/50">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Title</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Description</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Event Date</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Created</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Updated</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                  Title
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                  Description
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                  Cost
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                  Created
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                  Updated
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
-              {events.map((event) => (
-                <tr key={event.id} className="border-b last:border-0">
-                  <td className="px-4 py-3 font-medium">{event.title}</td>
-                  <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">{event.description}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(event.date)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(event.createdAt)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(event.updatedAt)}</td>
+              {services.map((service) => (
+                <tr key={service.id} className="border-b last:border-0">
+                  <td className="px-4 py-3 font-medium">{service.title}</td>
+                  <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">
+                    {service.description}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {service.cost}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {formatDate(service.createdAt)}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {formatDate(service.updatedAt)}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
-                      <Button size="sm" variant="outline" onClick={() => openEdit(event.id)}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openEdit(service.id)}
+                      >
                         Edit
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => handleDelete(event.id)}
-                        disabled={deletingId === event.id}
+                        onClick={() => handleDelete(service.id)}
+                        disabled={deletingId === service.id}
                       >
-                        {deletingId === event.id ? (
+                        {deletingId === service.id ? (
                           <>
                             <Spinner />
                             Deleting...
@@ -205,11 +239,11 @@ export default function EventsPage() {
         )}
       </div>
 
-      <EditEventDialog
+      <EditServiceDialog
         open={editOpen}
         onOpenChange={setEditOpen}
-        eventId={editId}
-        onSuccess={fetchEvents}
+        serviceId={editId}
+        onSuccess={fetchServices}
       />
     </div>
   );

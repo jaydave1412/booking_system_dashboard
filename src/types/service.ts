@@ -1,20 +1,20 @@
-export interface Event {
+export interface Service {
   id: string;
   title: string;
   description: string;
-  date: string;
+  cost: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateEventPayload {
+export interface CreateServicePayload {
   title: string;
   description: string;
-  date: string;
+  cost: number;
 }
 
-export interface UpdateEventPayload {
+export interface UpdateServicePayload {
   title: string;
   description: string;
-  date: string;
+  cost: number;
 }
