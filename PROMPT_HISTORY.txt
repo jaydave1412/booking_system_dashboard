@@ -1,0 +1,60 @@
+PROMPT HISTORY - Booking System Dashboard
+==========================================
+
+--- SESSION 1 ---
+
+1. I am creating a booking system employee dashboard, I want to use nextjs for it along with typescript for UI I want to use shadcn and tailwind. right now we are just making the login page, user can login using email and password. when the user logs in we want to send the user to a protected dashboard page. the url is /employee/login, we will implement that later we are just going to bootstrap the project and create the first page
+
+2. in the login page I have added error state show the error above the form
+
+3. add loading state as well when submit button is clicked and disable submit when loading for loading add a spinner disabled button
+
+4. add loading state as well when submit button is clicked and disable submit when loading for loading add a spinner disabled button see if button has a variant in shadcn if not then use the svg
+
+5. there is an error in the terminal that was running npm run dev can You see it
+
+6. Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+
+7. migrate middleware to proxy
+
+8. delete the middleware.ts file now it is no longer needed
+
+9. in dashboard page add a logout button that sends post request to /auth/logout
+
+10. when logging out add a loading state as well and diable the button at that time
+
+11. in proxy now instead of just checking id token is there see if the user is valid by sending request to /auth/validate if the user is valid then server will return valid: true, user: req.user, and if not then it will return 401 error, also a logged in user should not be able to go to the login page again. similarly a not loggedin user should not be able to access the protected routes, as of now it is dashboard.
+
+12. keep fetch
+
+13. create a sidebar component with 4 links dashboard, customers, events, bookings and move the logout button will be in a user menu in header along with the employee name for now hardcode the employee name later we will use global state for it, the brand name in sidebar will be Booking system, also all protected the routes stated above will be protected. make sure to make some route group and a layout for protected routes
+
+14. clicking header name is giving error
+
+15. in the employee page add 2 cards one to create employee, fields are name, email, password. On submit the request goes to /employee post and show any error if coming from backend below it a table that lists all employees and in the list add 2 buttons 1 to edit employee it opens a popup fetches data from /employee/:id prefills the form, has a check box to change password if yes then password field appears and send on submit sends patch request to /employee/:id show error if any occours, implement loading state in each button and last is delete button as soon as it is clicked alert confirms if we are sure if yes then delete request goes to server and user is deleted. everytime after the request succeeds refetch the data to table looks updated and add a loading state initially as well when the initial employees list is being read. everytime something is updated loading same loading state is used
+
+16. just like employees page create events page as well route is /events fields are id String @id @default(cuid()), title String, description String, date DateTime, createdAt DateTime @default(now()), updatedAt DateTime @updatedAt
+
+17. endpoint is /events not /event
+
+--- SESSION 2 ---
+
+18. add auth provider in this app, I am using http only cookies so to get the user you have to send request to /auth/validate it will send you return { userId: payload.sub, email: payload.email, role: payload.role, name: payload.name }; in header show user name as well and every route in (protected) is supposed to be accessed only by loggedin users similarly login route can only be accessed by not loggedin user
+
+19. I logged in cookie is ok but still I am getting redirected to login page again and again if I try to go to dashboard
+
+20. after login cookie is getting set but redirect is not happening, should we move login and logout to auth provider as well
+
+--- SESSION 3 ---
+
+21. when I press up arrow I can see the prompt I had given you I want a history of those starting from the beginning and save it in a txt file
+
+--- SESSION 4 ---
+
+22. in the create events form in events page make description as text box
+
+23. same for edit event popup as well
+
+24. complete the bookings page based on this service [BookingService with findAll, findUserBookings, create, update methods] show the table along with customer details, the user can update the status to cancel dont add delete action and status change will also be a button conditionally rendered and whenever button is pressed relevant alert is shown
+
+25. give option to confirm the canceled booking
