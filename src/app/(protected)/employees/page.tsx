@@ -51,6 +51,10 @@ export default function EmployeesPage() {
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (form.password !== form.password.trim()) {
+      setCreateError("Password cannot start or end with a space.");
+      return;
+    }
     setCreateLoading(true);
     setCreateError("");
     try {

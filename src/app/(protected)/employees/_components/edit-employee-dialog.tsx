@@ -51,6 +51,10 @@ export default function EditEmployeeDialog({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (changePassword && form.password && form.password !== form.password.trim()) {
+      setError("Password cannot start or end with a space.");
+      return;
+    }
     setSubmitLoading(true);
     setError("");
     try {
